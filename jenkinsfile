@@ -1,1 +1,42 @@
 
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Get the latest files from the connected GitHub repository.
+                checkout scm
+            }
+        }
+
+        stage('Validate Website') {
+            steps {
+                // Stop the pipeline if index.html is missing.
+                sh 'test -f index.html'
+                echo 'Website file found.'
+            }
+        }
+
+        stage('Deploy to Apache') {
+            steps {
+                // The Jenkins user must have write permission to this folder.
+                sh 'cp index.html /var/www/html/index.html'
+                echo 'Website deployed to Apache.'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'CI/CD pipeline completed successfully.'
+        }
+        failure {
+            echo 'Pipeline failed. Check the stage output above.'
+        }
+    }
+}
